@@ -13,3 +13,10 @@ type Subscription struct {
 	StartDate   time.Time
 	EndDate     *time.Time
 }
+
+type SubscriptionDTO struct {
+	ServiceName string
+	Price       int
+	UserID      uuid.UUID
+	StartDate   string
+}

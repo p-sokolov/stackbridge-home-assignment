@@ -1,26 +1,75 @@
-package service
+package main
 
 import (
+	"context"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+	"errors"
 	"net/http"
-	"sync"
-	"json"
 
-	"https://github.com/gorilla/mux"
-
-	"github.com/gorilla/mux"
+	"stackbridge-home-task/internal/config"
+	"stackbridge-home-task/internal/app"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	return
+func main() {
+	// setting up the logger
+	logger := setupLogger()
+
+	// init config
+	cfg, err := config.New()
+	if err != nil {
+		logger.Error("failed to read config", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	// create app instance
+	a, err := app.New(context.Background(), cfg, logger)
+	if err != nil {
+		logger.Error("failed to create app", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	// create context to catch system calls
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	// start app with error channel
+	errChan := make(chan error, 1)	
+	go func() {
+		if err := a.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
+		close(errChan)
+	}()
+
+	// wait until receiving stop signal from app or client
+	select {
+	case err := <-errChan:
+		if err != nil {
+			logger.Error("server stopped unexpectedly", slog.Any("error", err))
+			os.Exit(1)
+		}
+	case <-ctx.Done():
+		logger.Info("shutdown signal received")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := a.Stop(shutdownCtx); err != nil {
+			logger.Error("failed to stop server gracefully", slog.Any("error", err))
+			os.Exit(1)
+		}
+	}
 }
 
-func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+func setupLogger() *slog.Logger {
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
 	})
-	r.HadleFunc("/subscription", handler).Methods("POST")
-	r.HadleFunc("/subscription", handler).Methods("GET")
-	r.HadleFunc("/subscription", handler).Methods("UPDATE")
-	r.HadleFunc("/subscription", handler).Methods("DELETE")
+
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	return logger
 }

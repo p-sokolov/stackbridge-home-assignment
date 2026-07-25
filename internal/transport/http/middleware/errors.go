@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"stackbridge-home-task/internal/errorz"
-	v1 "stackbridge-home-task/internal/transport/http/v1"
 	"log/slog"
 	"net/http"
+	"stackbridge-home-task/internal/errorz"
+	v1 "stackbridge-home-task/internal/transport/http/v1"
 
 	"github.com/labstack/echo/v4"
 )

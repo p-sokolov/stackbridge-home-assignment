@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"errors"
-	"net/http"
 
-	"stackbridge-home-task/internal/config"
 	"stackbridge-home-task/internal/app"
+	"stackbridge-home-task/internal/config"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	defer stop()
 
 	// start app with error channel
-	errChan := make(chan error, 1)	
+	errChan := make(chan error, 1)
 	go func() {
 		if err := a.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err

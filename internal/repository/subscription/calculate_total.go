@@ -22,7 +22,7 @@ func (r *repo) CalculateTotalCost(
 	total, err := q.CalculateSubscriptionsTotal(ctx, storage.CalculateSubscriptionsTotalParams{
 		UserID:      userID,
 		ServiceName: serviceName,
-		StartPeriod: &startPeriod,
+		StartPeriod: toPgDate(endPeriod),
 		EndPeriod:   toPgDate(endPeriod),
 	})
 	if err != nil {

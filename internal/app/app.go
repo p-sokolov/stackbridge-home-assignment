@@ -29,10 +29,10 @@ import (
 )
 
 type App struct {
-	cfg          *config.Config
-	l            *slog.Logger
-	e            *echo.Echo
-	dbPool       *pgxpool.Pool
+	cfg    *config.Config
+	l      *slog.Logger
+	e      *echo.Echo
+	dbPool *pgxpool.Pool
 }
 
 // New creates and initializes a new instance of App
@@ -49,7 +49,7 @@ func New(ctx context.Context, cfg *config.Config, l *slog.Logger) (*App, error) 
 	if err := a.migrateDB(); err != nil {
 		return nil, err
 	}
-	
+
 	if err := a.initEcho(); err != nil {
 		return nil, err
 	}
@@ -61,12 +61,12 @@ func New(ctx context.Context, cfg *config.Config, l *slog.Logger) (*App, error) 
 	apiGroup := a.e.Group("/api/v1")
 
 	strictHandler := v1.NewStrictHandler(
-	    handler,
-	    []v1.StrictMiddlewareFunc{
-	        custommiddleware.StrictErrorMiddleware,
-	    },
+		handler,
+		[]v1.StrictMiddlewareFunc{
+			custommiddleware.StrictErrorMiddleware,
+		},
 	)
-	
+
 	v1.RegisterHandlers(apiGroup, strictHandler)
 
 	return a, nil

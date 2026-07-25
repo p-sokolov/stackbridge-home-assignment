@@ -1,4 +1,4 @@
-package domain
+package models
 
 import (
 	"time"
@@ -19,4 +19,5 @@ type SubscriptionDTO struct {
 	Price       int
 	UserID      uuid.UUID
 	StartDate   string
+	EndDate     *string
 }

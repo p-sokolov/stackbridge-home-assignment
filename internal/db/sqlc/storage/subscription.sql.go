@@ -14,28 +14,42 @@ import (
 )
 
 const calculateSubscriptionsTotal = `-- name: CalculateSubscriptionsTotal :one
-SELECT COALESCE(SUM(price), 0)::int
+SELECT COALESCE(SUM(
+    price * (
+        (
+            EXTRACT(YEAR FROM AGE(
+                LEAST(COALESCE(end_date, $1::date), $1::date),
+                GREATEST(start_date, $2::date)
+            ))::int * 12
+        )
+        + EXTRACT(MONTH FROM AGE(
+            LEAST(COALESCE(end_date, $1::date), $1::date),
+            GREATEST(start_date, $2::date)
+        ))::int
+        + 1
+    )
+), 0)::int
 FROM subscriptions
 WHERE
-    user_id = $1
-    AND service_name = $2
-    AND start_date <= $3
-    AND (end_date IS NULL OR end_date >= $4)
+    user_id = $3
+    AND service_name = $4
+    AND start_date <= $1::date
+    AND (end_date IS NULL OR end_date >= $2::date)
 `
 
 type CalculateSubscriptionsTotalParams struct {
+	EndPeriod   pgtype.Date
+	StartPeriod pgtype.Date
 	UserID      uuid.UUID
 	ServiceName string
-	EndPeriod   pgtype.Date
-	StartPeriod *time.Time
 }
 
 func (q *Queries) CalculateSubscriptionsTotal(ctx context.Context, arg CalculateSubscriptionsTotalParams) (int32, error) {
 	row := q.db.QueryRow(ctx, calculateSubscriptionsTotal,
-		arg.UserID,
-		arg.ServiceName,
 		arg.EndPeriod,
 		arg.StartPeriod,
+		arg.UserID,
+		arg.ServiceName,
 	)
 	var column_1 int32
 	err := row.Scan(&column_1)

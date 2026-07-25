@@ -48,10 +48,24 @@ WHERE id = sqlc.arg(id);
 
 
 -- name: CalculateSubscriptionsTotal :one
-SELECT COALESCE(SUM(price), 0)::int
+SELECT COALESCE(SUM(
+    price * (
+        (
+            EXTRACT(YEAR FROM AGE(
+                LEAST(COALESCE(end_date, sqlc.arg(end_period)::date), sqlc.arg(end_period)::date),
+                GREATEST(start_date, sqlc.arg(start_period)::date)
+            ))::int * 12
+        )
+        + EXTRACT(MONTH FROM AGE(
+            LEAST(COALESCE(end_date, sqlc.arg(end_period)::date), sqlc.arg(end_period)::date),
+            GREATEST(start_date, sqlc.arg(start_period)::date)
+        ))::int
+        + 1
+    )
+), 0)::int
 FROM subscriptions
 WHERE
     user_id = sqlc.arg(user_id)
     AND service_name = sqlc.arg(service_name)
-    AND start_date <= sqlc.arg(end_period)
-    AND (end_date IS NULL OR end_date >= sqlc.arg(start_period));
+    AND start_date <= sqlc.arg(end_period)::date
+    AND (end_date IS NULL OR end_date >= sqlc.arg(start_period)::date);

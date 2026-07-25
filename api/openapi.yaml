@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: Subscription Service API
+  version: 1.0.0
+  description: REST-service for user's online subscription data aggregation
+
+servers:
+  - url: /api/v1
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message: { type: string, description: "Error Description" }
+
+    Subscription:
+      type: object
+      required:
+        - id
+        - service_name
+        - price
+        - user_id
+        - start_date
+      properties:
+        id: { type: string, format: uuid }
+        service_name: { type: string, example: "Yandex Plus" }
+        price: { type: integer, example: 400, description: "Price in rubles" }
+        user_id: { type: string, format: uuid, example: "60601fee-2bf1-4721-ae6f-7636e79a0cba" }
+        start_date: { type: string, example: "07-2025", description: "Month and year of subscription start" }
+        end_date: { type: string, example: "12-2025", nullable: true, description: "Date of subscription ending, optional" }
+
+    SubscriptionCreate:
+      type: object
+      required:
+        - service_name
+        - price
+        - user_id
+        - start_date
+      properties:
+        service_name: { type: string, example: "Yandex Plus" }
+        price: { type: integer, example: 400 }
+        user_id: { type: string, format: uuid, example: "60601fee-2bf1-4721-ae6f-7636e79a0cba" }
+        start_date: { type: string, example: "07-2025" }
+        end_date: { type: string, example: "12-2025", nullable: true }
+
+    TotalCostResponse:
+      type: object
+      required:
+        - total_cost
+      properties:
+        total_cost: { type: integer, example: 1200, description: "Total cost in rubles" }
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /subscriptions:
+    post:
+      summary: Create a subscription entry
+      operationId: createSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '201':
+          description: Subscription successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: Get a list of a user's subscriptions
+      operationId: listSubscriptions
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: User ID
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /subscriptions/{id}:
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: Subscription record ID
+    get:
+      summary: Get a subscription by ID
+      operationId: getSubscription
+      responses:
+        '200':
+          description: Subscription data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      summary: Update subscription details
+      operationId: updateSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '200':
+          description: Subscription successfully renewed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete subscription
+      operationId: deleteSubscription
+      responses:
+        '204':
+          description: Subscription successfully deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /subscriptions/cost:
+    get:
+      summary: Calculating the total cost of subscriptions
+      description: Calculates the total cost of all subscriptions for a selected period, filtered by user ID and subscription name
+      operationId: calculateTotalCost
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: User ID
+        - in: query
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Service name
+        - in: query
+          name: start_period
+          schema:
+            type: string
+            example: "01-2025"
+          required: true
+          description: Beginning of the period
+        - in: query
+          name: end_period
+          schema:
+            type: string
+            example: "12-2025"
+          required: true
+          description: End of the period
+      responses:
+        '200':
+          description: Total cost
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalCostResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'

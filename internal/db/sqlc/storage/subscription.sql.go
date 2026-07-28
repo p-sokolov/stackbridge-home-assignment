@@ -141,10 +141,18 @@ SELECT id, service_name, price, user_id, start_date, end_date
 FROM subscriptions
 WHERE user_id = $1
 ORDER BY start_date DESC, service_name ASC
+LIMIT $3
+OFFSET $2
 `
 
-func (q *Queries) ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]Subscription, error) {
-	rows, err := q.db.Query(ctx, listSubscriptions, userID)
+type ListSubscriptionsParams struct {
+	UserID    uuid.UUID
+	OffsetCnt int32
+	LimitCnt  int32
+}
+
+func (q *Queries) ListSubscriptions(ctx context.Context, arg ListSubscriptionsParams) ([]Subscription, error) {
+	rows, err := q.db.Query(ctx, listSubscriptions, arg.UserID, arg.OffsetCnt, arg.LimitCnt)
 	if err != nil {
 		return nil, err
 	}

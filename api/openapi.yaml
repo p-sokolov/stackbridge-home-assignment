@@ -107,6 +107,23 @@ paths:
             format: uuid
           required: true
           description: User ID
+        - in: query
+          name: limit_cnt
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          required: false
+          description: Number of subscriptions to return
+        - in: query
+          name: offset_cnt
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          required: false
+          description: Number of subscriptions to skip
       responses:
         '200':
           description: List of subscriptions

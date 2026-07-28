@@ -26,7 +26,9 @@ WHERE id = sqlc.arg(id);
 SELECT *
 FROM subscriptions
 WHERE user_id = sqlc.arg(user_id)
-ORDER BY start_date DESC, service_name ASC;
+ORDER BY start_date DESC, service_name ASC
+LIMIT sqlc.arg(limit_cnt)
+OFFSET sqlc.arg(offset_cnt);
 
 
 -- name: UpdateSubscription :one

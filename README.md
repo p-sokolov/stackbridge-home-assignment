@@ -176,7 +176,7 @@ Example response:
 ### List User Subscriptions
 
 ```bash
-curl -i "$baseUrl/subscriptions?user_id=$userId"
+curl -i "$baseUrl/subscriptions?user_id=$userId&limit_cnt=20&offset_cnt=0"
 ```
 
 Example response:
@@ -434,6 +434,13 @@ Example:
 ```
 
 The service does not check whether a user exists. It only stores the provided `user_id`.
+
+## Recent Improvements
+
+- The list endpoint supports pagination through `limit_cnt` and `offset_cnt` query parameters.
+- PostgreSQL indexes are added in `0002_indexes.sql` to speed up filtering by `user_id` and total cost queries by `user_id`, `service_name`, and subscription dates.
+- Configuration loading accepts `context.Context`, so application startup can respect context cancellation.
+- HTTP transport error handling is centralized with helper functions for expected bad request and not found errors, while unexpected errors are still handled by strict middleware.
 
 ## Logging
 

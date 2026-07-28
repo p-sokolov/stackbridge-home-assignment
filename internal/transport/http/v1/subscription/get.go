@@ -2,9 +2,7 @@ package subscription
 
 import (
 	"context"
-	"errors"
 
-	"stackbridge-home-task/internal/errorz"
 	v1 "stackbridge-home-task/internal/transport/http/v1"
 )
 
@@ -14,9 +12,9 @@ func (h *Handler) GetSubscription(
 ) (v1.GetSubscriptionResponseObject, error) {
 	sub, err := h.svc.GetByID(ctx, req.Id)
 	if err != nil {
-		if errors.Is(err, errorz.ErrSubscriptionNotFound) {
+		if isNotFound(err) {
 			return v1.GetSubscription404JSONResponse{
-				NotFoundJSONResponse: notFound("subscription not found"),
+				NotFoundJSONResponse: notFound(err.Error()),
 			}, nil
 		}
 		return nil, err

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"context"
+
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -19,13 +21,21 @@ type postgres struct {
 }
 
 // New creates a new config instance
-func New() (*Config, error) {
+func New(ctx context.Context) (*Config, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	var cfg Config
 
 	// Read .env file
 	// If failed to read file, will try ReadEnv
 	if err := cleanenv.ReadConfig(".env", &cfg); err == nil {
 		return &cfg, nil
+	}
+
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 
 	// Read env

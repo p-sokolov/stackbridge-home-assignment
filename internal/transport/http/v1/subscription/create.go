@@ -2,9 +2,7 @@ package subscription
 
 import (
 	"context"
-	"errors"
 
-	"stackbridge-home-task/internal/errorz"
 	"stackbridge-home-task/internal/models"
 	v1 "stackbridge-home-task/internal/transport/http/v1"
 )
@@ -29,14 +27,9 @@ func (h *Handler) CreateSubscription(
 
 	sub, err := h.svc.Create(ctx, input)
 	if err != nil {
-		if errors.Is(err, errorz.ErrInvalidSubscriptionData) {
+		if isBadRequest(err) {
 			return v1.CreateSubscription400JSONResponse{
 				BadRequestJSONResponse: badRequest("invalid subscription data"),
-			}, nil
-		}
-		if errors.Is(err, errorz.ErrSubscriptionAlreadyExists) {
-			return v1.CreateSubscription400JSONResponse{
-				BadRequestJSONResponse: badRequest("subscription already exists"),
 			}, nil
 		}
 		return nil, err

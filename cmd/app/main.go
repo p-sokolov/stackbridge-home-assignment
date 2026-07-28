@@ -18,8 +18,12 @@ func main() {
 	// setting up the logger
 	logger := setupLogger()
 
+	// create context to catch system calls
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	// init config
-	cfg, err := config.New()
+	cfg, err := config.New(ctx)
 	if err != nil {
 		logger.Error("failed to read config", slog.Any("error", err))
 		os.Exit(1)
@@ -31,10 +35,6 @@ func main() {
 		logger.Error("failed to create app", slog.Any("error", err))
 		os.Exit(1)
 	}
-
-	// create context to catch system calls
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	// start app with error channel
 	errChan := make(chan error, 1)

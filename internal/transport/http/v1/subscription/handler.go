@@ -15,7 +15,7 @@ const monthLayout = "01-2006"
 type service interface {
 	Create(ctx context.Context, input *models.SubscriptionDTO) (*models.Subscription, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Subscription, error)
-	List(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error)
+	List(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*models.Subscription, error)
 	Update(ctx context.Context, id uuid.UUID, input *models.SubscriptionDTO) (*models.Subscription, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	CalculateTotalCost(ctx context.Context, userID uuid.UUID, serviceName, startPeriod, endPeriod string) (int, error)

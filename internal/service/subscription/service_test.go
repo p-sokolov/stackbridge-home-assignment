@@ -34,7 +34,7 @@ func (r *fakeRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Subscript
 	return nil, nil
 }
 
-func (r *fakeRepo) List(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error) {
+func (r *fakeRepo) List(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*models.Subscription, error) {
 	return nil, nil
 }
 

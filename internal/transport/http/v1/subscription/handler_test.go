@@ -16,7 +16,7 @@ import (
 type fakeService struct {
 	createFn             func(context.Context, *models.SubscriptionDTO) (*models.Subscription, error)
 	getByIDFn            func(context.Context, uuid.UUID) (*models.Subscription, error)
-	listFn               func(context.Context, uuid.UUID) ([]*models.Subscription, error)
+	listFn               func(context.Context, uuid.UUID, int, int) ([]*models.Subscription, error)
 	updateFn             func(context.Context, uuid.UUID, *models.SubscriptionDTO) (*models.Subscription, error)
 	deleteFn             func(context.Context, uuid.UUID) error
 	calculateTotalCostFn func(context.Context, uuid.UUID, string, string, string) (int, error)
@@ -30,8 +30,8 @@ func (s fakeService) GetByID(ctx context.Context, id uuid.UUID) (*models.Subscri
 	return s.getByIDFn(ctx, id)
 }
 
-func (s fakeService) List(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error) {
-	return s.listFn(ctx, userID)
+func (s fakeService) List(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*models.Subscription, error) {
+	return s.listFn(ctx, userID, limit, offset)
 }
 
 func (s fakeService) Update(ctx context.Context, id uuid.UUID, input *models.SubscriptionDTO) (*models.Subscription, error) {
@@ -199,7 +199,7 @@ func TestListSubscriptionsSuccess(t *testing.T) {
 	userID := uuid.New()
 
 	h := New(fakeService{
-		listFn: func(ctx context.Context, id uuid.UUID) ([]*models.Subscription, error) {
+		listFn: func(ctx context.Context, id uuid.UUID, limit, offset int) ([]*models.Subscription, error) {
 			if id != userID {
 				t.Fatalf("unexpected user id: %s", id)
 			}

@@ -16,7 +16,7 @@ const monthLayout = "01-2006"
 type repo interface {
 	Create(ctx context.Context, sub *models.Subscription) (*models.Subscription, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Subscription, error)
-	List(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error)
+	List(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*models.Subscription, error)
 	Update(ctx context.Context, sub *models.Subscription) (*models.Subscription, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	CalculateTotalCost(ctx context.Context, userID uuid.UUID, serviceName string, startPeriod, endPeriod time.Time) (int, error)
